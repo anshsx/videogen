@@ -143,8 +143,7 @@ export default function Component() {
             }}
             style={{ backgroundClip: 'text', WebkitBackgroundClip: 'text', color: 'transparent' }}
           >
-            &quot;Browse Boldly&lt;br /&gt;Troll Wisely&quot;&lt;br /&gt;~ Era Search
-
+             &quot;Browse Boldly<br />Troll Wisely&quot;<br />~ Era Search
           </motion.span>
         </motion.h1>
         <Link href="https://play.google.com/store/apps/details?id=com.erainc.era"target="_blank"passHref><motion.button 
