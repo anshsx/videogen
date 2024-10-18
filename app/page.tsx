@@ -143,7 +143,7 @@ export default function Component() {
             }}
             style={{ backgroundClip: 'text', WebkitBackgroundClip: 'text', color: 'transparent' }}
           >
-            &quot;Browse Boldly Troll Wisely&quot; ~ Era Search
+            "Browse Boldly <span className="troll-wisely">Troll Wisely</span>"<br />~ Era Search
 
           </motion.span>
         </motion.h1>
