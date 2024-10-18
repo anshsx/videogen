@@ -3,7 +3,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, Plus, Minus, Youtube, Twitter } from 'lucide-react'
+import { ChevronDown, Plus, Minus, Youtube } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import logoe from '../logoe.jpeg'
