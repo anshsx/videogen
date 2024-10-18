@@ -1,52 +1,55 @@
 "use client"
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, Plus, Minus, Youtube, Twitter } from 'lucide-react'
+import { ChevronDown, Plus, Minus, Youtube } from 'lucide-react'
 import Image from 'next/image'
+import Link from 'next/link'
+import logoe from '../logoe.jpeg'
+import cleanui from '../cleanui.jpg'
+import aibrowse from '../aibrowse.jpg'
+import google from '../google.jpg'
+import qr from '../qr.png'
 
 const features = [
   { 
-    title: "INSTANT ANSWERS",
-    description: "Generate the perfect answer to any question with Browse for Me.",
-    image: "/placeholder.svg?height=400&width=200"
+    title: "GOOGLE SEARCH",
+    description: "Powered by Google Search Engine",
+    image: google
   },
   { 
-    title: "VOICE SEARCH",
-    description: "Search with your voice for lengthy questions on the go.",
-    image: "/placeholder.svg?height=400&width=200"
+    title: "AI BROWSE",
+    description: "AI Search, A better answer for every question.",
+    image: aibrowse
   },
   { 
-    title: "PINCH TO SUMMARIZE",
-    description: "Get the gist in a pinch — literally.",
-    image: "/placeholder.svg?height=400&width=200"
+    title: "CLEAN UI",
+    description: "Awww, So beautiful it is... Isn't it?",
+    image: cleanui
   },
 ]
 
 const faqs = [
   {
     question: "How do I install Era Search?",
-    answer: "Desktop: Scan the QR code with your iPhone, or download Era Search from the App Store. Mobile: Download Era Search directly from the App Store or visit the App Store on your iPhone to search for \"Era Search.\""
+    answer: "Desktop: Scan the QR code with your Android, or download Era Search from the App Store. Mobile: Download Era Search directly from the Play Store or visit the Play Store on your Android to search for \"Era Search.\""
   },
   {
     question: "What devices are supported?",
-    answer: "Currently, Era Search is available for iOS devices. We're working on support for other platforms."
+    answer: "Currently, Era Search is available for Android devices. We're working on support for other platforms."
   },
   {
     question: "How do I set Era Search as my default mobile browser?",
-    answer: "Go to your iPhone's Settings > Era Search > Default Browser App, and select Era Search."
-  },
-  {
-    question: "How do I sync across mobile and desktop?",
-    answer: "Sign in with your Era account on both devices. Your data will automatically sync across platforms."
+    answer: "Currently you can't set it but in next update you will surely be able to set it as your default browser"
   },
   {
     question: "How do I share feedback?",
-    answer: "You can share feedback through the app's settings menu or by visiting our website's feedback page."
+    answer: "You can share feedback by mailing us on erasearch.co@gmail.com"
   },
 ]
 
-export function ArcSearchLanding() {
+export default function Component() {
   const [currentFeature, setCurrentFeature] = useState(0)
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [isScrolled, setIsScrolled] = useState(false)
@@ -105,13 +108,13 @@ export function ArcSearchLanding() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-pink-50 to-white text-gray-900">
+    <div className="min-h-screen bg-gradient-to-b from-pink-20 to-white text-gray-900">
       <div ref={headerRef} className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-gradient-to-b from-white via-white to-transparent h-24' : ''}`}>
         <div className={`container mx-auto px-4 py-6 flex justify-between items-center ${isScrolled ? 'bg-white' : ''} relative z-10`}>
           <div className="text-2xl font-bold">Era Search</div>
-          <button className="px-6 py-2 rounded-full font-semibold transition-colors bg-white text-gray-900 hover:bg-gray-100">
+          <Link href="https://play.google.com/store/apps/details?id=com.erainc.era" target="_blank"passHref><button className="px-6 py-2 rounded-full font-semibold transition-colors bg-black text-white hover:bg-black">
             Download
-          </button>
+          </button></Link>
         </div>
       </div>
 
@@ -133,24 +136,25 @@ export function ArcSearchLanding() {
               ],
               transition: {
                 duration: 10,
-                ease: "linear",
+                ease: 'linear',
                 repeat: Infinity,
-                repeatType: "reverse"
+                repeatType: 'reverse' 
               }
             }}
             style={{ backgroundClip: 'text', WebkitBackgroundClip: 'text', color: 'transparent' }}
           >
-            "Browse Boldly<br />Troll Wisely"<br />~ Era Search
+            &quot;Browse Boldly&lt;br /&gt;Troll Wisely&quot;&lt;br /&gt;~ Era Search
+
           </motion.span>
         </motion.h1>
-        <motion.button 
+        <Link href="https://play.google.com/store/apps/details?id=com.erainc.era"target="_blank"passHref><motion.button 
           className="px-8 py-4 rounded-full text-xl font-semibold bg-gray-900 text-white hover:bg-gray-800 transition-colors relative z-10"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6, duration: 0.5 }}
         >
           Download Now →
-        </motion.button>
+        </motion.button></Link>
         <motion.div 
           className="mt-20 cursor-pointer relative z-10 group"
           initial={{ opacity: 0 }}
@@ -166,7 +170,7 @@ export function ArcSearchLanding() {
       <div className="container mx-auto px-4 py-20">
         <div className="mb-20 text-center">
           <Image
-            src="/placeholder.svg?height=100&width=100"
+            src={logoe}
             alt="Era Search Logo"
             width={100}
             height={100}
@@ -178,7 +182,7 @@ export function ArcSearchLanding() {
             </span>
           </h2>
           <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800">
-            is a mobile browser <span className="italic">for the you</span>
+            browser that browses <span className="italic">for you</span>
           </p>
         </div>
 
@@ -188,30 +192,31 @@ export function ArcSearchLanding() {
           </h2>
           
           <div 
-            ref={featureRef}
-            className="overflow-x-auto scrollbar-hide whitespace-nowrap scroll-smooth mb-8"
-          >
-            {features.map((feature, index) => (
-              <button
-                key={index}
-                className={`inline-block text-center px-4 py-2 mx-2 rounded-full text-sm font-medium transition-colors ${
-                  currentFeature === index
-                    ? 'bg-gray-900 text-white'
-                    : 'bg-white text-gray-800 hover:bg-gray-100'
-                }`}
-              >
-                {feature.title}
-              </button>
-            ))}
-          </div>
+      ref={featureRef}
+      className="overflow-x-auto scrollbar-hide whitespace-nowrap scroll-smooth mb-8 flex justify-center" // Flexbox for centering
+    >
+      {features.map((feature, index) => (
+        <button
+          key={index}
+          onClick={() => setCurrentFeature(index)} // Update state on click
+          className={`inline-block text-center px-4 py-2 mx-2 rounded-full text-sm font-medium transition-colors ${
+            currentFeature === index
+              ? 'bg-gray-900 text-white' // Active styling
+              : 'bg-white text-gray-800 hover:bg-gray-100' // Inactive styling
+          }`}
+        >
+          {feature.title}
+        </button>
+      ))}
+    </div>
 
-          <div className="bg-white rounded-3xl p-6 max-w-xs mx-auto mt-8 border border-gray-200">
-            <div className="flex items-center justify-between mb-4 text-xs text-gray-500">
+          <div className="bg-white rounded-3xl p-4 max-w-xs mx-auto mt-8 border border-gray-300">
+            <div className="flex items-center justify-between mb-2 text-xs text-gray-500">
               <div>{currentTime}</div>
               <div className="flex items-center space-x-1">
-                <div className="w-4 h-4 bg-gray-400 rounded-full"></div>
-                <div className="w-4 h-4 bg-gray-400 rounded-full"></div>
-                <div className="w-4 h-4 bg-gray-400 rounded-full"></div>
+                <div className="w-4 h-4 bg-green-400 rounded-full"></div>
+                <div className="w-4 h-4 bg-yellow-400 rounded-full"></div>
+                <div className="w-4 h-4 bg-red-400 rounded-full"></div>
               </div>
             </div>
             <div className="relative">
@@ -263,17 +268,18 @@ export function ArcSearchLanding() {
         <div className="mt-20 p-8 sm:p-10 rounded-3xl">
           <div className="text-center">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 text-gray-800">Scan this QR code with your phone</h2>
-            <p className="text-lg sm:text-xl mb-10 text-gray-600">to download Era Search on the App Store.</p>
+            <p className="text-lg sm:text-xl mb-10 text-gray-600">to download Era Search from Play Store.</p>
             <div className="inline-block">
               <Image
-                src="/placeholder.svg?height=200&width=200"
+                src={qr}
                 alt="QR Code"
                 width={200}
                 height={200}
               />
             </div>
-            <p className="mt-10 text-xl font-semibold text-gray-800">WE'RE WORKING ON ANDROID, TOO!</p>
-            <a href="#" className="mt-4 inline-block text-blue-600 hover:text-blue-800 transition-colors font-medium">TRY THE ANDROID BETA →</a>
+            <p className="mt-10 text-xl font-semibold text-gray-800">WE&apos;RE WORKING FOR iPHONE, TOO!
+</p>
+            <a href="https://era-nine.vercel.app/iphone.html" className="mt-4 inline-block text-blue-600 hover:text-blue-800 transition-colors font-medium">JOIN THE IPHONE WAITING LIST →</a>
           </div>
         </div>
       </div>
@@ -282,41 +288,25 @@ export function ArcSearchLanding() {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
             <div>
-              <h3 className="text-2xl font-bold mb-6">PRODUCT</h3>
+              <h3 className="text-2xl font-bold mb-6">EXPLORE ERA</h3>
               <ul className="space-y-4">
-                <li><a href="#" className="hover:text-gray-300 transition-colors">Download</a></li>
-                <li><a href="#" className="hover:text-gray-300 transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-gray-300 transition-colors">Terms of Use</a></li>
-                <li><a href="#" className="hover:text-gray-300 transition-colors">Security</a></li>
-                <li><a href="#" className="hover:text-gray-300 transition-colors">Arc Max</a></li>
-                <li><a href="#" className="hover:text-gray-300 transition-colors">Arc for iPhone</a></li>
-                <li><a href="#" className="hover:text-gray-300 transition-colors">Arc Boosts</a></li>
-                <li><a href="#" className="hover:text-gray-300 transition-colors">Integrations</a></li>
-                <li><a href="#"   className="hover:text-gray-300 transition-colors">Credits</a></li>
+                <li><a href="https://play.google.com/store/apps/details?id=com.erainc.era" className="hover:text-gray-300 transition-colors">Download</a></li>
+                <li><a href="https://era-nine.vercel.app/policy.html" className="hover:text-gray-300 transition-colors">Privacy Policy</a></li>
+                <li><a href="https://era-nine.vercel.app/" className="hover:text-gray-300 transition-colors">Our First Website</a></li>
               </ul>
             </div>
-            <div>
-              <h3 className="text-2xl font-bold mb-6">RESOURCES</h3>
-              <ul className="space-y-4">
-                <li><a href="#" className="hover:text-gray-300 transition-colors">Resource Center</a></li>
-                <li><a href="#" className="hover:text-gray-300 transition-colors">Release Notes</a></li>
-                <li><a href="#" className="hover:text-gray-300 transition-colors">Students</a></li>
-                <li><a href="#" className="hover:text-gray-300 transition-colors">FAQ</a></li>
-                <li><a href="#" className="hover:text-gray-300 transition-colors">Careers @ BCNY</a></li>
-              </ul>
-            </div>
+            
           </div>
           <div className="mt-12 flex flex-col md:flex-row justify-between items-center">
             <div className="flex space-x-6 mb-6 md:mb-0">
-              <a href="#" className="hover:text-gray-300 transition-colors">
+              <a href="https://youtube.com/@era.search" className="hover:text-gray-300 transition-colors">
                 <Youtube size={28} />
               </a>
-              <a href="#" className="hover:text-gray-300 transition-colors">
-                <Twitter size={28} />
-              </a>
+              
             </div>
             <div className="text-sm text-gray-400">
-              THE BROWSER COMPANY of NEW YORK
+              ERA Inc. (Inspired by &quot;The Browser Company&quot;)
+
             </div>
           </div>
         </div>
