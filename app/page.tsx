@@ -1,4 +1,5 @@
 "use client"
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -142,7 +143,8 @@ export default function Component() {
             }}
             style={{ backgroundClip: 'text', WebkitBackgroundClip: 'text', color: 'transparent' }}
           >
-            "Browse Boldly<br />Troll Wisely"<br />~ Era Search
+            &quot;Browse Boldly&lt;br /&gt;Troll Wisely&quot;&lt;br /&gt;~ Era Search
+
           </motion.span>
         </motion.h1>
         <Link href="https://play.google.com/store/apps/details?id=com.erainc.era"target="_blank"passHref><motion.button 
@@ -275,7 +277,8 @@ export default function Component() {
                 height={200}
               />
             </div>
-            <p className="mt-10 text-xl font-semibold text-gray-800">WE'RE WORKING FOR iPHONE, TOO!</p>
+            <p className="mt-10 text-xl font-semibold text-gray-800">WE&apos;RE WORKING FOR iPHONE, TOO!
+</p>
             <a href="https://era-nine.vercel.app/iphone.html" className="mt-4 inline-block text-blue-600 hover:text-blue-800 transition-colors font-medium">JOIN THE IPHONE WAITING LIST →</a>
           </div>
         </div>
@@ -302,7 +305,8 @@ export default function Component() {
               
             </div>
             <div className="text-sm text-gray-400">
-              ERA Inc. (Inspired by "The Browser Company")
+              ERA Inc. (Inspired by &quot;The Browser Company&quot;)
+
             </div>
           </div>
         </div>
