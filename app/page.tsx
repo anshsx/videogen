@@ -136,14 +136,15 @@ export default function Component() {
               ],
               transition: {
                 duration: 10,
-                ease: "linear",
+                ease: 'linear',
                 repeat: Infinity,
-                repeatType: "reverse"
+                repeatType: 'reverse' 
               }
             }}
             style={{ backgroundClip: 'text', WebkitBackgroundClip: 'text', color: 'transparent' }}
           >
-             &quot;Browse Boldly<br />Troll Wisely&quot;<br />~ Era Search
+            &quot;Browse Boldly&lt;br /&gt;Troll Wisely&quot;&lt;br /&gt;~ Era Search
+
           </motion.span>
         </motion.h1>
         <Link href="https://play.google.com/store/apps/details?id=com.erainc.era"target="_blank"passHref><motion.button 
