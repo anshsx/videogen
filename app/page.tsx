@@ -291,6 +291,7 @@ export default function Component() {
               <h3 className="text-2xl font-bold mb-6">EXPLORE ERA</h3>
               <ul className="space-y-4">
                 <li><a href="https://play.google.com/store/apps/details?id=com.erainc.era" className="hover:text-gray-300 transition-colors">Download</a></li>
+                <li><a href="https://era-nine.vercel.app/cheat.html" className="hover:text-gray-300 transition-colors">Cheat Sheet</a></li>
                 <li><a href="https://era-nine.vercel.app/policy.html" className="hover:text-gray-300 transition-colors">Privacy Policy</a></li>
                 <li><a href="https://era-nine.vercel.app/" className="hover:text-gray-300 transition-colors">Our First Website</a></li>
               </ul>
