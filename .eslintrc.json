@@ -1,3 +1,35 @@
 {
-  "extends": ["next/core-web-vitals", "next/typescript"]
+  "extends": [
+    "next/core-web-vitals", 
+    "next/typescript",
+    "eslint:recommended", 
+    "plugin:@typescript-eslint/recommended", 
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended",
+    "plugin:prettier/recommended"
+  ],
+  "plugins": [
+    "react",
+    "react-hooks",
+    "@typescript-eslint",
+    "prettier"
+  ],
+  "rules": {
+    "@typescript-eslint/no-empty-interface": "off",  // Disable no-empty-interface rule (if necessary)
+    "react/react-in-jsx-scope": "off",  // Disable for Next.js projects (React is automatically in scope)
+    "prettier/prettier": ["error", {
+      "singleQuote": true,
+      "semi": false
+    }]
+  },
+  "parserOptions": {
+    "ecmaVersion": 2020,
+    "sourceType": "module",
+    "project": "./tsconfig.json"
+  },
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
+  }
 }
