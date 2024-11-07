@@ -12,6 +12,13 @@ import {
 } from "@/components/ui/select"
 import { Send, Download, PlayCircle, PauseCircle, MessageSquarePlus } from 'lucide-react'
 
+// Define the type for messages
+type Message = {
+  id?: string;
+  type: 'user' | 'loading' | 'bot' | 'error';
+  content?: string;
+}
+
 const voices = [
   { name: 'mrbeast', label: 'Mr Beast' },
   { name: 'jamie', label: 'Jamie' },
@@ -22,14 +29,8 @@ const voices = [
   { name: 'narrator', label: 'Narrator' },
 ]
 
-interface Message {
-  id?: string;
-  type: 'user' | 'bot' | 'loading' | 'error';
-  content: string;
-}
-
 export default function TextToSpeech() {
-  const [messages, setMessages] = useState<Message[]>([])
+  const [messages, setMessages] = useState<Message[]>([]) // Ensure messages is typed as an array of Message
   const [inputText, setInputText] = useState('')
   const [selectedVoice, setSelectedVoice] = useState('mrbeast')
   const [isLoading, setIsLoading] = useState(false)
@@ -67,8 +68,12 @@ export default function TextToSpeech() {
     if (!inputText.trim()) return
 
     setIsLoading(true)
-    const newMessage = { type: 'user', content: inputText }
+
+    // Type the newMessage as Message
+    const newMessage: Message = { type: 'user', content: inputText }
+
     setMessages([...messages, newMessage, { type: 'loading' }])
+
     setInputText('')
     scrollToBottom()
 
@@ -96,7 +101,7 @@ export default function TextToSpeech() {
       const data = await response.json()
       const audioSrc = `data:audio/mp3;base64,${data.audioStream}`
       const messageId = Date.now().toString()
-      
+
       setMessages(prev => [...prev.slice(0, -1), { id: messageId, type: 'bot', content: audioSrc }])
 
     } catch (error) {
@@ -107,7 +112,7 @@ export default function TextToSpeech() {
     }
   }
 
-  const handleDownload = (audioSrc) => {
+  const handleDownload = (audioSrc: string) => {
     const link = document.createElement('a')
     link.href = audioSrc
     link.download = 'speech.mp3'
@@ -164,7 +169,7 @@ export default function TextToSpeech() {
                     <Button
                       size="icon"
                       variant="ghost"
-                      onClick={() => handlePlayPause(message.id)}
+                      onClick={() => handlePlayPause(message.id!)}
                       className="h-8 w-8"
                     >
                       {currentlyPlaying === message.id ? 
@@ -175,15 +180,15 @@ export default function TextToSpeech() {
                     <Button
                       size="icon"
                       variant="ghost"
-                      onClick={() => handleDownload(message.content)}
+                      onClick={() => handleDownload(message.content!)}
                       className="h-8 w-8"
                     >
                       <Download className="h-4 w-4" />
                     </Button>
                     <audio
-                      ref={el => audioRefs.current[message.id] = el}
-                      src={message.content}
-                      onEnded={() => handleAudioEnded(message.id)}
+                      ref={el => audioRefs.current[message.id!] = el!}
+                      src={message.content!}
+                      onEnded={() => handleAudioEnded(message.id!)}
                       className="hidden"
                     />
                   </div>
@@ -235,4 +240,4 @@ export default function TextToSpeech() {
       </footer>
     </div>
   )
-}
+                            }
