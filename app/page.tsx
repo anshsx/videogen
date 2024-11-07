@@ -29,7 +29,7 @@ export default function TextToSpeech() {
   const [isLoading, setIsLoading] = useState(false)
   const [currentlyPlaying, setCurrentlyPlaying] = useState(null)
   const audioRefs = useRef({})
-  const messagesEndRef = useRef(null)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
