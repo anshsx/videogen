@@ -1,11 +1,10 @@
 {
   "extends": [
-    "next/core-web-vitals", 
+    "next/core-web-vitals",
     "next/typescript",
-    "eslint:recommended", 
-    "plugin:@typescript-eslint/recommended", 
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
     "plugin:react/recommended",
-    "plugin:react-hooks/recommended",
     "plugin:prettier/recommended"
   ],
   "plugins": [
@@ -15,8 +14,8 @@
     "prettier"
   ],
   "rules": {
-    "@typescript-eslint/no-empty-interface": "off",  // Disable no-empty-interface rule (if necessary)
-    "react/react-in-jsx-scope": "off",  // Disable for Next.js projects (React is automatically in scope)
+    "@typescript-eslint/no-empty-interface": "off",
+    "react/react-in-jsx-scope": "off",
     "prettier/prettier": ["error", {
       "singleQuote": true,
       "semi": false
