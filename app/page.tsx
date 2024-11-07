@@ -38,19 +38,22 @@ export default function TextToSpeech() {
   useEffect(scrollToBottom, [messages])
 
   const handlePlayPause = (messageId: string) => {
-  const audio = audioRefs.current[messageId]
-  
-  if (currentlyPlaying && currentlyPlaying !== messageId) {
-    audioRefs.current[currentlyPlaying].pause()
-  }
-  
-  if (audio.paused) {
-    audio.play()
-    setCurrentlyPlaying(messageId)
-  } else {
-    audio.pause()
-    setCurrentlyPlaying(null)
-  }
+    
+    const audio = audioRefs.current[messageId]
+    
+
+    if (currentlyPlaying && currentlyPlaying !== messageId) {
+      
+      audioRefs.current[currentlyPlaying].pause()
+    }
+
+    if (audio.paused) {
+      audio.play()
+      setCurrentlyPlaying(messageId)  // Ensuring messageId is valid
+    } else {
+      audio.pause()
+      setCurrentlyPlaying(null)
+    }
   }
 
   const handleAudioEnded = (messageId) => {
