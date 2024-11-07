@@ -1,274 +1,232 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { Slider } from "@/components/ui/slider"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
-import { Image as ImageIcon, Loader2, ArrowLeft, Settings, Download } from "lucide-react"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Send, Download, PlayCircle, PauseCircle, MessageSquarePlus } from 'lucide-react'
 
-const imageModelDetails = [
-  { 
-    name: "flux", 
-    displayName: "Dekho General", 
-    description: "High-quality image generation", 
-    gradient: "from-blue-500 to-purple-500" 
-  },
-  { 
-    name: "flux-realism", 
-    displayName: "Dekho Realism", 
-    description: "Realistic image generation", 
-    gradient: "from-green-500 to-teal-500" 
-  },
-  { 
-    name: "flux-cablyai", 
-    displayName: "Dekho Artist", 
-    description: "Abstract and artistic styles", 
-    gradient: "from-red-500 to-yellow-500" 
-  },
-  { 
-    name: "flux-anime", 
-    displayName: "Dekho Anime", 
-    description: "Anime-style image generation", 
-    gradient: "from-pink-500 to-purple-500" 
-  },
-  { 
-    name: "flux-3d", 
-    displayName: "Dekho 3D", 
-    description: "3D rendering and effects", 
-    gradient: "from-indigo-500 to-blue-500" 
-  },
-  { 
-    name: "any-dark", 
-    displayName: "Dekho Dark", 
-    description: "Dark, moody images", 
-    gradient: "from-yellow-500 to-green-500" 
-  },
-  { 
-    name: "flux-pro", 
-    displayName: "Dekho Pro", 
-    description: "Professional-level generation", 
-    gradient: "from-purple-600 to-blue-600" 
-  },
-  { 
-    name: "turbo", 
-    displayName: "Dekho Turbo", 
-    description: "Fast and high-quality generation", 
-    gradient: "from-yellow-500 to-orange-500" 
-  },
+const voices = [
+  { name: 'mrbeast', label: 'Mr Beast' },
+  { name: 'jamie', label: 'Jamie' },
+  { name: 'snoop', label: 'Snoop' },
+  { name: 'henry', label: 'Henry' },
+  { name: 'gwyneth', label: 'Gwyneth' },
+  { name: 'cliff', label: 'Cliff' },
+  { name: 'narrator', label: 'Narrator' },
 ]
 
-interface ChatHistory {
-  prompt: string;
-  response: string;
-}
+export default function TextToSpeech() {
+  const [messages, setMessages] = useState([])
+  const [inputText, setInputText] = useState('')
+  const [selectedVoice, setSelectedVoice] = useState('mrbeast')
+  const [isLoading, setIsLoading] = useState(false)
+  const [currentlyPlaying, setCurrentlyPlaying] = useState(null)
+  const audioRefs = useRef({})
+  const messagesEndRef = useRef(null)
 
-export default function ERAImage() {
-  const [selectedModel, setSelectedModel] = useState<string | null>(null)
-  const [prompt, setPrompt] = useState('')
-  const [response, setResponse] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [width, setWidth] = useState(512)
-  const [height, setHeight] = useState(512)
-  const [seed, setSeed] = useState(Math.floor(Math.random() * 1000000))
-  const [enhancePrompt, setEnhancePrompt] = useState(false)
-  const [noLogo, setNoLogo] = useState(false)
-  const [chatHistories, setChatHistories] = useState<{[key: string]: ChatHistory[]}>({})
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }
 
-  useEffect(() => {
-    const storedHistories = localStorage.getItem('chatHistories')
-    if (storedHistories) {
-      setChatHistories(JSON.parse(storedHistories))
+  useEffect(scrollToBottom, [messages])
+
+  const handlePlayPause = (messageId) => {
+    const audio = audioRefs.current[messageId]
+    
+    if (currentlyPlaying && currentlyPlaying !== messageId) {
+      audioRefs.current[currentlyPlaying].pause()
     }
-  }, [])
-
-  useEffect(() => {
-    if (selectedModel && chatHistories[selectedModel]) {
-      const lastChat = chatHistories[selectedModel][chatHistories[selectedModel].length - 1]
-      setPrompt(lastChat.prompt)
-      setResponse(lastChat.response)
+    
+    if (audio.paused) {
+      audio.play()
+      setCurrentlyPlaying(messageId)
     } else {
-      setPrompt('')
-      setResponse('')
+      audio.pause()
+      setCurrentlyPlaying(null)
     }
-  }, [selectedModel])
+  }
 
-  const generateImage = async () => {
-    setLoading(true)
-    setResponse('')
+  const handleAudioEnded = (messageId) => {
+    setCurrentlyPlaying(null)
+  }
+
+  const handleSend = async () => {
+    if (!inputText.trim()) return
+
+    setIsLoading(true)
+    const newMessage = { type: 'user', content: inputText }
+    setMessages([...messages, newMessage, { type: 'loading' }])
+    setInputText('')
+    scrollToBottom()
 
     try {
-      const baseUrl = 'https://image.pollinations.ai/prompt/'
-      const encodedPrompt = encodeURIComponent(prompt)
-      let url = `${baseUrl}${encodedPrompt}?model=${selectedModel}&seed=${seed}&width=${width}&height=${height}`
-      if (enhancePrompt) url += '&enhance=1'
-      if (noLogo) url += '&nologo=1'
-      
-      const response = await fetch(url)
-      if (response.ok) {
-        const imageUrl = response.url
-        setResponse(imageUrl)
-        updateChatHistory(prompt, imageUrl)
-      } else {
-        throw new Error('Failed to generate image')
+      const response = await fetch("https://audio.api.speechify.com/generateAudioFiles", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          audioFormat: "mp3",
+          paragraphChunks: [inputText],
+          voiceParams: {
+            name: selectedVoice,
+            engine: "speechify",
+            languageCode: "en-US"
+          }
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
       }
+
+      const data = await response.json()
+      const audioSrc = `data:audio/mp3;base64,${data.audioStream}`
+      const messageId = Date.now().toString()
+      
+      setMessages(prev => [...prev.slice(0, -1), { id: messageId, type: 'bot', content: audioSrc }])
+
     } catch (error) {
       console.error('Error:', error)
-      setResponse('An error occurred while generating the image.')
+      setMessages(prev => [...prev.slice(0, -1), { type: 'error', content: 'Failed to generate audio. Please try again.' }])
     } finally {
-      setLoading(false)
+      setIsLoading(false)
     }
   }
 
-  const updateChatHistory = (prompt: string, response: string) => {
-    if (selectedModel) {
-      const updatedHistories = { ...chatHistories }
-      if (!updatedHistories[selectedModel]) {
-        updatedHistories[selectedModel] = []
-      }
-      updatedHistories[selectedModel].push({ prompt, response })
-      setChatHistories(updatedHistories)
-      localStorage.setItem('chatHistories', JSON.stringify(updatedHistories))
-    }
+  const handleDownload = (audioSrc) => {
+    const link = document.createElement('a')
+    link.href = audioSrc
+    link.download = 'speech.mp3'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
   }
 
-  const downloadImage = async () => {
-    if (!response) return
-    try {
-      const image = await fetch(response)
-      const imageBlog = await image.blob()
-      const imageURL = URL.createObjectURL(imageBlog)
-      
-      const link = document.createElement('a')
-      link.href = imageURL
-      link.download = 'generated-image.png'
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-    } catch (error) {
-      console.error('Error downloading image:', error)
-    }
-  }
-
-  if (selectedModel) {
-    return (
-      <div className="flex flex-col h-screen bg-black text-white">
-        <header className="sticky top-0 z-10 backdrop-blur-md bg-black/30 border-b border-gray-800">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-            <div className="flex items-center">
-              <Button variant="ghost" onClick={() => setSelectedModel(null)} className="mr-4">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back
-              </Button>
-              <h2 className="text-xl font-semibold">{selectedModel}</h2>
-            </div>
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="icon" className="bg-gray-800 border-gray-700">
-                  <Settings className="h-4 w-4" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-[300px] sm:w-[540px] bg-gray-900 text-white">
-                <SheetHeader>
-                  <SheetTitle className="text-white">Image Settings</SheetTitle>
-                </SheetHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="width">Width: {width}px</Label>
-                    <Slider id="width" min={64} max={1024} step={64} value={[width]} onValueChange={(value) => setWidth(value[0])} />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="height">Height: {height}px</Label>
-                    <Slider id="height" min={64} max={1024} step={64} value={[height]} onValueChange={(value) => setHeight(value[0])} />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="seed">Seed: {seed}</Label>
-                    <Slider id="seed" min={0} max={1000000} step={1} value={[seed]} onValueChange={(value) => setSeed(value[0])} />
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Switch id="enhance" checked={enhancePrompt} onCheckedChange={setEnhancePrompt} />
-                    <Label htmlFor="enhance">Enhance Prompt</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Switch id="nologo" checked={noLogo} onCheckedChange={setNoLogo} />
-                    <Label htmlFor="nologo">Remove Logo</Label>
-                  </div>
-                </div>
-              </SheetContent>
-            </Sheet>
-          </div>
-        </header>
-        <main className="flex-1 overflow-auto p-4">
-          {response && (
-            <div className="mb-4 p-4 bg-gray-900 rounded-lg">
-              <div className="relative">
-                <img src={response} alt="Generated" className="w-full h-auto max-h-[70vh] object-contain rounded-lg" />
-                <Button 
-                  onClick={downloadImage} 
-                  className="absolute top-2 right-2 bg-white bg-opacity-50 hover:bg-opacity-70 text-black border border-black"
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Download
-                </Button>
-              </div>
-              </div>
-          )}
-        </main>
-        <footer className="sticky bottom-0 border-t border-gray-800 bg-black p-4">
-          <div className="flex gap-2 max-w-3xl mx-auto">
-            <Input
-              placeholder="Enter your prompt..."
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              className="flex-1 bg-gray-900 border-gray-700 text-white"
-            />
-            <Button 
-              onClick={generateImage}
-              disabled={loading || !prompt}
-              className="bg-[#4221ff] hover:bg-[#4221ff] text-white"
-            >
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Generate'}
-            </Button>
-          </div>
-        </footer>
-      </div>
-    )
+  const handleNewChat = () => {
+    setMessages([])
+    setInputText('')
+    setCurrentlyPlaying(null)
+    Object.values(audioRefs.current).forEach(audio => audio.pause())
+    audioRefs.current = {}
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      <header className="sticky top-0 z-10 backdrop-blur-md bg-black/30 border-b border-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center">
-          <ImageIcon className="h-8 w-8 mr-2 text-blue-500" />
-          <h1 className="text-2xl font-bold">Dekho AI</h1>
-        </div>
+    <div className="flex flex-col h-screen bg-background">
+      {/* App Bar */}
+      <header className="border-b bg-background p-4 flex items-center justify-between">
+        <h1 className="text-xl font-semibold">Era Speak</h1>
+        <Button variant="default" className="rounded-full" onClick={handleNewChat}>
+          New Chat
+        </Button>
       </header>
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {imageModelDetails.map(({ name, displayName, description, gradient }) => (
-            <Card
-              key={name}
-              className={`bg-gray-900 border-gray-800 hover:border-blue-600 cursor-pointer transition-all duration-300 transform hover:scale-105`}
-              onClick={() => setSelectedModel(name)}
-            >
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <div className={`h-12 w-12 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center`}>
-                    <ImageIcon className="h-6 w-6 text-white" />
+
+      {/* Main Content */}
+      <main className="flex-grow overflow-auto p-4 space-y-4">
+        {messages.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full text-center">
+            <MessageSquarePlus className="w-16 h-16 text-gray-400 mb-4" />
+            <h2 className="text-2xl font-bold text-gray-700 mb-2">Let's Get Started!</h2>
+            <p className="text-gray-500">Type a message below to begin your conversation.</p>
+          </div>
+        ) : (
+          messages.map((message, index) => (
+            <div key={message.id || index} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div className={`max-w-[70%] p-3 rounded-2xl ${
+                message.type === 'user' ? 'bg-primary text-primary-foreground' : 
+                message.type === 'error' ? 'bg-destructive text-destructive-foreground' : 'bg-secondary'
+              }`}>
+                {message.type === 'user' ? (
+                  <p>{message.content}</p>
+                ) : message.type === 'error' ? (
+                  <p>{message.content}</p>
+                ) : message.type === 'loading' ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-primary rounded-full animate-bounce" />
+                    <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                    <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.4s' }} />
                   </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-white">{displayName}</h3>
-                    <p className="text-sm text-gray-400">{description}</p>
+                ) : (
+                  <div className="flex items-center space-x-3">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handlePlayPause(message.id)}
+                      className="h-8 w-8"
+                    >
+                      {currentlyPlaying === message.id ? 
+                        <PauseCircle className="h-8 w-8" /> : 
+                        <PlayCircle className="h-8 w-8" />
+                      }
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handleDownload(message.content)}
+                      className="h-8 w-8"
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
+                    <audio
+                      ref={el => audioRefs.current[message.id] = el}
+                      src={message.content}
+                      onEnded={() => handleAudioEnded(message.id)}
+                      className="hidden"
+                    />
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                )}
+              </div>
+            </div>
+          ))
+        )}
+        <div ref={messagesEndRef} />
       </main>
+
+      {/* Input Container */}
+      <footer className="border-t bg-background p-4">
+        <div className="max-w-2xl mx-auto">
+          <div className="relative flex flex-col space-y-2">
+            <Input
+              type="text"
+              placeholder="Type your message..."
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+              className="pr-24 py-6"
+            />
+            <div className="flex items-center justify-between">
+              <Select value={selectedVoice} onValueChange={setSelectedVoice}>
+                <SelectTrigger className="w-[120px] h-10">
+                  <SelectValue placeholder="Voice" />
+                </SelectTrigger>
+                <SelectContent>
+                  {voices.map((voice) => (
+                    <SelectItem key={voice.name} value={voice.name}>
+                      {voice.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button 
+                onClick={handleSend} 
+                disabled={isLoading} 
+                size="default"
+                className="h-10"
+              >
+                <Send className="h-4 w-4 mr-2" />
+                Send
+              </Button>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   )
-            }
+        }
