@@ -22,8 +22,14 @@ const voices = [
   { name: 'narrator', label: 'Narrator' },
 ]
 
+interface Message {
+  id?: string;
+  type: 'user' | 'bot' | 'loading' | 'error';
+  content: string;
+}
+
 export default function TextToSpeech() {
-  const [messages, setMessages] = useState([])
+  const [messages, setMessages] = useState<Message[]>([])
   const [inputText, setInputText] = useState('')
   const [selectedVoice, setSelectedVoice] = useState('mrbeast')
   const [isLoading, setIsLoading] = useState(false)
