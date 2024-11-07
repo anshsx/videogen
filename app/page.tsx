@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/select"
 import { Send, Download, PlayCircle, PauseCircle, MessageSquarePlus } from 'lucide-react'
 
-// Define the type for messages
 type Message = {
   id?: string;
   type: 'user' | 'loading' | 'bot' | 'error';
@@ -30,12 +29,14 @@ const voices = [
 ]
 
 export default function TextToSpeech() {
-  const [messages, setMessages] = useState<Message[]>([]) // Ensure messages is typed as an array of Message
+  const [messages, setMessages] = useState<Message[]>([]) 
   const [inputText, setInputText] = useState('')
   const [selectedVoice, setSelectedVoice] = useState('mrbeast')
   const [isLoading, setIsLoading] = useState(false)
   const [currentlyPlaying, setCurrentlyPlaying] = useState<string | null>(null)
+
   const audioRefs = useRef<Record<string, HTMLAudioElement>>({})
+
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const scrollToBottom = () => {
@@ -53,10 +54,10 @@ export default function TextToSpeech() {
 
     if (audio.paused) {
       audio.play();
-      setCurrentlyPlaying(messageId); // This is now correct, as messageId is a string
+      setCurrentlyPlaying(messageId); 
     } else {
       audio.pause();
-      setCurrentlyPlaying(null); // This is valid as well
+      setCurrentlyPlaying(null); 
     }
   }
 
@@ -69,7 +70,6 @@ export default function TextToSpeech() {
 
     setIsLoading(true)
 
-    // Type the newMessage as Message
     const newMessage: Message = { type: 'user', content: inputText }
 
     setMessages([...messages, newMessage, { type: 'loading' }])
@@ -131,7 +131,6 @@ export default function TextToSpeech() {
 
   return (
     <div className="flex flex-col h-screen bg-background">
-      {/* App Bar */}
       <header className="border-b bg-background p-4 flex items-center justify-between">
         <h1 className="text-xl font-semibold">Era Speak</h1>
         <Button variant="default" className="rounded-full" onClick={handleNewChat}>
@@ -139,7 +138,6 @@ export default function TextToSpeech() {
         </Button>
       </header>
 
-      {/* Main Content */}
       <main className="flex-grow overflow-auto p-4 space-y-4">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
@@ -186,7 +184,7 @@ export default function TextToSpeech() {
                       <Download className="h-4 w-4" />
                     </Button>
                     <audio
-                      ref={el => audioRefs.current[message.id!] = el!}
+                      ref={(el) => { audioRefs.current[message.id!] = el! }}
                       src={message.content!}
                       onEnded={() => handleAudioEnded(message.id!)}
                       className="hidden"
@@ -200,7 +198,6 @@ export default function TextToSpeech() {
         <div ref={messagesEndRef} />
       </main>
 
-      {/* Input Container */}
       <footer className="border-t bg-background p-4">
         <div className="max-w-2xl mx-auto">
           <div className="relative flex flex-col space-y-2">
@@ -209,13 +206,12 @@ export default function TextToSpeech() {
               placeholder="Type your message..."
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-              className="pr-24 py-6"
+              onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleSend()}
             />
-            <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
               <Select value={selectedVoice} onValueChange={setSelectedVoice}>
-                <SelectTrigger className="w-[120px] h-10">
-                  <SelectValue placeholder="Voice" />
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Voice" />
                 </SelectTrigger>
                 <SelectContent>
                   {voices.map((voice) => (
@@ -225,14 +221,13 @@ export default function TextToSpeech() {
                   ))}
                 </SelectContent>
               </Select>
-              <Button 
-                onClick={handleSend} 
-                disabled={isLoading} 
-                size="default"
-                className="h-10"
+              <Button
+                variant="default"
+                className="ml-auto"
+                onClick={handleSend}
+                disabled={isLoading}
               >
-                <Send className="h-4 w-4 mr-2" />
-                Send
+                {isLoading ? 'Loading...' : <Send />}
               </Button>
             </div>
           </div>
@@ -240,4 +235,4 @@ export default function TextToSpeech() {
       </footer>
     </div>
   )
-                            }
+    }
