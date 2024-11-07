@@ -29,7 +29,7 @@ export default function TextToSpeech() {
   const [isLoading, setIsLoading] = useState(false)
   const [currentlyPlaying, setCurrentlyPlaying] = useState(null)
   const audioRefs = useRef({})
-  const messagesEndRef = useRef<HTMLDivElement | null>(null)
+  const messagesEndRef = useRef(null)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -37,25 +37,25 @@ export default function TextToSpeech() {
 
   useEffect(scrollToBottom, [messages])
 
-  const handlePlayPause = (messageId: string) => {
-  const audio = audioRefs.current[messageId];
-  if (currentlyPlaying && currentlyPlaying !== messageId) {
-    const currentAudio = audioRefs.current[currentlyPlaying];
-    if (currentAudio) {
-      currentAudio.pause();
-      currentAudio.currentTime = 0;
+  const handlePlayPause = (messageId) => {
+    const audio = audioRefs.current[messageId]
+    
+    if (currentlyPlaying && currentlyPlaying !== messageId) {
+      audioRefs.current[currentlyPlaying].pause()
     }
-  }
-  if (audio) {
+    
     if (audio.paused) {
-      audio.play();
-      setCurrentlyPlaying(messageId);
+      audio.play()
+      setCurrentlyPlaying(messageId)
     } else {
-      audio.pause();
-      setCurrentlyPlaying(null);
+      audio.pause()
+      setCurrentlyPlaying(null)
     }
   }
-};
+
+  const handleAudioEnded = (messageId) => {
+    setCurrentlyPlaying(null)
+  }
 
   const handleSend = async () => {
     if (!inputText.trim()) return
@@ -229,5 +229,4 @@ export default function TextToSpeech() {
       </footer>
     </div>
   )
-  
 }
