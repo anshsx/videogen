@@ -27,7 +27,7 @@ export default function TextToSpeech() {
   const [inputText, setInputText] = useState('')
   const [selectedVoice, setSelectedVoice] = useState('mrbeast')
   const [isLoading, setIsLoading] = useState(false)
-  const [currentlyPlaying, setCurrentlyPlaying] = useState(null)
+  const [currentlyPlaying, setCurrentlyPlaying] = useState<string | null>(null)
   const audioRefs = useRef<Record<string, HTMLAudioElement>>({})
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -38,21 +38,18 @@ export default function TextToSpeech() {
   useEffect(scrollToBottom, [messages])
 
   const handlePlayPause = (messageId: string) => {
-    
-    const audio = audioRefs.current[messageId]
-    
+    const audio = audioRefs.current[messageId];
 
     if (currentlyPlaying && currentlyPlaying !== messageId) {
-      
-      audioRefs.current[currentlyPlaying].pause()
+      audioRefs.current[currentlyPlaying]?.pause();
     }
 
     if (audio.paused) {
-      audio.play()
-      setCurrentlyPlaying(messageId)  // Ensuring messageId is valid
+      audio.play();
+      setCurrentlyPlaying(messageId); // This is now correct, as messageId is a string
     } else {
-      audio.pause()
-      setCurrentlyPlaying(null)
+      audio.pause();
+      setCurrentlyPlaying(null); // This is valid as well
     }
   }
 
