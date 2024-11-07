@@ -53,8 +53,8 @@ export default function TextToSpeech() {
     }
   }
 
-  const handleAudioEnded = (messageId) => {
-    setCurrentlyPlaying(null)
+  const handleAudioEnded = (messageId: string) => {
+    setCurrentlyPlaying(null);
   }
 
   const handleSend = async () => {
