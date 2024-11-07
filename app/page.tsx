@@ -28,7 +28,7 @@ export default function TextToSpeech() {
   const [selectedVoice, setSelectedVoice] = useState('mrbeast')
   const [isLoading, setIsLoading] = useState(false)
   const [currentlyPlaying, setCurrentlyPlaying] = useState(null)
-  const audioRefs = useRef({})
+  const audioRefs = useRef<Record<string, HTMLAudioElement>>({})
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const scrollToBottom = () => {
