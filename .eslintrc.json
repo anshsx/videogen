@@ -15,7 +15,10 @@
   "rules": {
     "@typescript-eslint/no-empty-interface": "off",
     "react/react-in-jsx-scope": "off",
-    "prettier/prettier": "off"
+    "prettier/prettier": ["error", {
+      "singleQuote": true,
+      "semi": false
+    }]
   },
   "parserOptions": {
     "ecmaVersion": 2020,
