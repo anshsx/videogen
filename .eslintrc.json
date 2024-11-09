@@ -9,7 +9,6 @@
   ],
   "plugins": [
     "react",
-    
     "@typescript-eslint",
     "prettier"
   ],
