@@ -1,238 +1,286 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { Send, Download, PlayCircle, PauseCircle, MessageSquarePlus } from 'lucide-react'
+import { Textarea } from "@/components/ui/textarea"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Progress } from "@/components/ui/progress"
+import { Trash2, MoveUp, MoveDown } from 'lucide-react'
+import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg'
 
-type Message = {
-  id?: string;
-  type: 'user' | 'loading' | 'bot' | 'error';
-  content?: string;
+const ffmpeg = createFFmpeg({ log: true })
+
+type Scene = {
+  id: number
+  imagePrompt: string
+  contentPrompt: string
+  imageUrl?: string
+  audioUrl?: string
 }
 
-const voices = [
-  { name: 'mrbeast', label: 'Mr Beast' },
-  { name: 'jamie', label: 'Jamie' },
-  { name: 'snoop', label: 'Snoop' },
-  { name: 'henry', label: 'Henry' },
-  { name: 'gwyneth', label: 'Gwyneth' },
-  { name: 'cliff', label: 'Cliff' },
-  { name: 'narrator', label: 'Narrator' },
-]
+export default function VideoGenerator() {
+  const [scenes, setScenes] = useState<Scene[]>([])
+  const [imagePrompt, setImagePrompt] = useState('')
+  const [contentPrompt, setContentPrompt] = useState('')
+  const [voice, setVoice] = useState('mrbeast')
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const [statusMessage, setStatusMessage] = useState('')
+  const videoRef = useRef<HTMLVideoElement>(null)
 
-export default function TextToSpeech() {
-  const [messages, setMessages] = useState<Message[]>([]) 
-  const [inputText, setInputText] = useState('')
-  const [selectedVoice, setSelectedVoice] = useState('mrbeast')
-  const [isLoading, setIsLoading] = useState(false)
-  const [currentlyPlaying, setCurrentlyPlaying] = useState<string | null>(null)
+  useEffect(() => {
+    loadFFmpeg()
+  }, [])
 
-  const audioRefs = useRef<Record<string, HTMLAudioElement>>({})
-
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }
-
-  useEffect(scrollToBottom, [messages])
-
-  const handlePlayPause = (messageId: string) => {
-    const audio = audioRefs.current[messageId];
-
-    if (currentlyPlaying && currentlyPlaying !== messageId) {
-      audioRefs.current[currentlyPlaying]?.pause();
-    }
-
-    if (audio.paused) {
-      audio.play();
-      setCurrentlyPlaying(messageId); 
-    } else {
-      audio.pause();
-      setCurrentlyPlaying(null); 
+  const loadFFmpeg = async () => {
+    if (!ffmpeg.isLoaded()) {
+      await ffmpeg.load()
     }
   }
 
-  const handleAudioEnded = (messageId: string) => {
-    setCurrentlyPlaying(null);
+  const addScene = () => {
+    if (imagePrompt && contentPrompt) {
+      setScenes([...scenes, { id: Date.now(), imagePrompt, contentPrompt }])
+      setImagePrompt('')
+      setContentPrompt('')
+    }
   }
 
-  const handleSend = async () => {
-    if (!inputText.trim()) return
+  const deleteScene = (id: number) => {
+    setScenes(scenes.filter(scene => scene.id !== id))
+  }
 
-    setIsLoading(true)
+  const moveScene = (index: number, direction: 'up' | 'down') => {
+    const newScenes = [...scenes]
+    const newIndex = direction === 'up' ? index - 1 : index + 1
+    if (newIndex >= 0 && newIndex < scenes.length) {
+      [newScenes[index], newScenes[newIndex]] = [newScenes[newIndex], newScenes[index]]
+      setScenes(newScenes)
+    }
+  }
 
-    const newMessage: Message = { type: 'user', content: inputText }
+  const generateImage = async (prompt: string): Promise<string> => {
+    setStatusMessage(`Generating image for prompt: ${prompt}`)
+    const encodedPrompt = encodeURIComponent(prompt)
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?height=1080&width=1920`
+    
+    const img = new Image()
+    img.crossOrigin = "anonymous"
+    img.src = imageUrl
+    await new Promise((resolve, reject) => {
+      img.onload = resolve
+      img.onerror = reject
+    })
 
-    setMessages([...messages, newMessage, { type: 'loading' }])
+    return imageUrl
+  }
 
-    setInputText('')
-    scrollToBottom()
+  const generateAudio = async (text: string, voiceName: string): Promise<string> => {
+    setStatusMessage(`Generating audio for text: ${text}`)
+    const url = "https://audio.api.speechify.com/generateAudioFiles"
+    const payload = {
+      audioFormat: "mp3",
+      paragraphChunks: [text],
+      voiceParams: {
+        name: voiceName,
+        engine: "speechify",
+        languageCode: "en-US"
+      }
+    }
 
     try {
-      const response = await fetch("https://audio.api.speechify.com/generateAudioFiles", {
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          audioFormat: "mp3",
-          paragraphChunks: [inputText],
-          voiceParams: {
-            name: selectedVoice,
-            engine: "speechify",
-            languageCode: "en-US"
-          }
-        }),
+        body: JSON.stringify(payload),
       })
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        throw new Error(`Failed to generate audio: ${response.statusText}`)
       }
 
       const data = await response.json()
-      const audioSrc = `data:audio/mp3;base64,${data.audioStream}`
-      const messageId = Date.now().toString()
+      if (!data.audioStream) {
+        throw new Error('No audio data received')
+      }
 
-      setMessages(prev => [...prev.slice(0, -1), { id: messageId, type: 'bot', content: audioSrc }])
-
+      return `data:audio/mp3;base64,${data.audioStream}`
     } catch (error) {
-      console.error('Error:', error)
-      setMessages(prev => [...prev.slice(0, -1), { type: 'error', content: 'Failed to generate audio. Please try again.' }])
-    } finally {
-      setIsLoading(false)
+      console.error('Error in generateAudio:', error)
+      throw error
     }
   }
 
-  const handleDownload = (audioSrc: string) => {
-    const link = document.createElement('a')
-    link.href = audioSrc
-    link.download = 'speech.mp3'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+  const createVideoClip = async (scene: Scene, index: number): Promise<void> => {
+    setStatusMessage(`Creating video clip for scene: ${scene.imagePrompt}`)
+    
+    // Write image file
+    ffmpeg.FS('writeFile', `image${index}.jpg`, await fetchFile(scene.imageUrl!))
+    
+    // Write audio file
+    ffmpeg.FS('writeFile', `audio${index}.mp3`, await fetchFile(scene.audioUrl!))
+    
+    // Run FFmpeg command to create video with zooming effect
+    await ffmpeg.run(
+      '-loop', '1', 
+      '-i', `image${index}.jpg`, 
+      '-i', `audio${index}.mp3`, 
+      '-filter_complex', '[0:v]scale=1920:1080,zoompan=z=\'min(zoom+0.0015,1.5)\':d=125,format=yuv420p[v]', 
+      '-map', '[v]', 
+      '-map', '1:a', 
+      '-c:v', 'libx264', 
+      '-c:a', 'aac', 
+      '-shortest', 
+      `output${index}.mp4`
+    )
   }
 
-  const handleNewChat = () => {
-    setMessages([])
-    setInputText('')
-    setCurrentlyPlaying(null)
-    Object.values(audioRefs.current).forEach(audio => audio.pause())
-    audioRefs.current = {}
+  const generateVideo = async () => {
+    setIsGenerating(true)
+    setProgress(0)
+    setStatusMessage('Starting video generation...')
+
+    try {
+      const totalSteps = scenes.length * 3 + 1 // Image + Audio + Video for each scene, plus final compilation
+      let completedSteps = 0
+
+      const updatedScenes = await Promise.all(scenes.map(async (scene) => {
+        const imageUrl = await generateImage(scene.imagePrompt)
+        completedSteps++
+        setProgress((completedSteps / totalSteps) * 100)
+
+        const audioUrl = await generateAudio(scene.contentPrompt, voice)
+        completedSteps++
+        setProgress((completedSteps / totalSteps) * 100)
+
+        return { ...scene, imageUrl, audioUrl }
+      }))
+
+      setStatusMessage('Generating video clips...')
+      await Promise.all(updatedScenes.map((scene, index) => {
+        return createVideoClip(scene, index).then(() => {
+          completedSteps++
+          setProgress((completedSteps / totalSteps) * 100)
+        })
+      }))
+
+      setStatusMessage('Combining video clips...')
+      const inputFiles = updatedScenes.map((_, index) => `file output${index}.mp4`).join('\n')
+      ffmpeg.FS('writeFile', 'input.txt', inputFiles)
+
+      await ffmpeg.run(
+        '-f', 'concat',
+        '-safe', '0',
+        '-i', 'input.txt',
+        '-c', 'copy',
+        'output.mp4'
+      )
+
+      const data = ffmpeg.FS('readFile', 'output.mp4')
+      const videoUrl = URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }))
+
+      if (videoRef.current) {
+        videoRef.current.src = videoUrl
+      }
+
+      completedSteps++
+      setProgress(100)
+      setStatusMessage('Video generation complete!')
+    } catch (error) {
+      console.error('Error generating video:', error)
+      setStatusMessage(`Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`)
+    } finally {
+      setIsGenerating(false)
+    }
   }
 
   return (
-    <div className="flex flex-col h-screen bg-background">
-      <header className="border-b bg-background p-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Era Speak</h1>
-        <Button variant="default" className="rounded-full" onClick={handleNewChat}>
-          New Chat
-        </Button>
-      </header>
+    <div className="container mx-auto p-4">
+      <h1 className="text-3xl font-bold mb-6 text-center">Video Generator</h1>
+      
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Add New Scene</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Input
+            placeholder="Image prompt"
+            value={imagePrompt}
+            onChange={(e) => setImagePrompt(e.target.value)}
+            className="mb-3"
+          />
+          <Textarea
+            placeholder="Content prompt"
+            value={contentPrompt}
+            onChange={(e) => setContentPrompt(e.target.value)}
+            className="mb-3"
+          />
+        </CardContent>
+        <CardFooter>
+          <Button onClick={addScene} className="w-full">Add Scene</Button>
+        </CardFooter>
+      </Card>
 
-      <main className="flex-grow overflow-auto p-4 space-y-4">
-        {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center">
-            <MessageSquarePlus className="w-16 h-16 text-gray-400 mb-4" />
-            <h2 className="text-2xl font-bold text-gray-700 mb-2">Let's Get Started!</h2>
-            <p className="text-gray-500">Type a message below to begin your conversation.</p>
-          </div>
-        ) : (
-          messages.map((message, index) => (
-            <div key={message.id || index} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[70%] p-3 rounded-2xl ${
-                message.type === 'user' ? 'bg-primary text-primary-foreground' : 
-                message.type === 'error' ? 'bg-destructive text-destructive-foreground' : 'bg-secondary'
-              }`}>
-                {message.type === 'user' ? (
-                  <p>{message.content}</p>
-                ) : message.type === 'error' ? (
-                  <p>{message.content}</p>
-                ) : message.type === 'loading' ? (
-                  <div className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-primary rounded-full animate-bounce" />
-                    <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
-                    <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.4s' }} />
-                  </div>
-                ) : (
-                  <div className="flex items-center space-x-3">
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => handlePlayPause(message.id!)}
-                      className="h-8 w-8"
-                    >
-                      {currentlyPlaying === message.id ? 
-                        <PauseCircle className="h-8 w-8" /> : 
-                        <PlayCircle className="h-8 w-8" />
-                      }
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => handleDownload(message.content!)}
-                      className="h-8 w-8"
-                    >
-                      <Download className="h-4 w-4" />
-                    </Button>
-                    <audio
-                      ref={(el) => { audioRefs.current[message.id!] = el! }}
-                      src={message.content!}
-                      onEnded={() => handleAudioEnded(message.id!)}
-                      className="hidden"
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-          ))
-        )}
-        <div ref={messagesEndRef} />
-      </main>
-
-      <footer className="border-t bg-background p-4">
-        <div className="max-w-2xl mx-auto">
-          <div className="relative flex flex-col space-y-2">
-            <Input
-              type="text"
-              placeholder="Type your message..."
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleSend()}
-            />
-            <div className="flex items-center space-x-2">
-              <Select value={selectedVoice} onValueChange={setSelectedVoice}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Voice" />
-                </SelectTrigger>
-                <SelectContent>
-                  {voices.map((voice) => (
-                    <SelectItem key={voice.name} value={voice.name}>
-                      {voice.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button
-                variant="default"
-                className="ml-auto"
-                onClick={handleSend}
-                disabled={isLoading}
-              >
-                {isLoading ? 'Loading...' : <Send />}
+      <div className="space-y-4 mb-6">
+        {scenes.map((scene, index) => (
+          <Card key={scene.id}>
+            <CardContent className="pt-6">
+              <p className="mb-2"><strong>Image Prompt:</strong> {scene.imagePrompt}</p>
+              <p className="mb-2"><strong>Content Prompt:</strong> {scene.contentPrompt}</p>
+            </CardContent>
+            <CardFooter className="flex justify-between">
+              <Button variant="destructive" onClick={() => deleteScene(scene.id)}>
+                <Trash2 className="mr-2 h-4 w-4" /> Delete
               </Button>
-            </div>
-          </div>
+              <div>
+                <Button variant="outline" onClick={() => moveScene(index, 'up')} disabled={index === 0} className="mr-2">
+                  <MoveUp className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" onClick={() => moveScene(index, 'down')} disabled={index === scenes.length - 1}>
+                  <MoveDown className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardFooter>
+          </Card>
+        ))}
+      </div>
+
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Voice Selection</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Select value={voice} onValueChange={setVoice}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select a voice" />
+            </SelectTrigger>
+            <SelectContent>
+              {['jamie', 'mrbeast', 'snoop', 'henry', 'gwyneth', 'cliff', 'narrator'].map((v) => (
+                <SelectItem key={v} value={v}>{v}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </CardContent>
+      </Card>
+
+      <Button onClick={generateVideo} disabled={scenes.length === 0 || isGenerating} className="w-full mb-6">
+        {isGenerating ? 'Generating...' : 'Generate Video'}
+      </Button>
+
+      {isGenerating && (
+        <div className="mb-6">
+          <Progress value={progress} className="mb-2" />
+          <p className="text-center font-semibold animate-pulse">
+            {statusMessage}
+          </p>
         </div>
-      </footer>
+      )}
+
+      <video ref={videoRef} controls className="w-full rounded-lg shadow-lg" />
     </div>
   )
     }
