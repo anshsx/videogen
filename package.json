@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ffmpeg/ffmpeg": "^0.11.6",
+    "@ffmpeg/util": "^0.12.1",
     "@radix-ui/react-select": "^1.0.0",
     "@radix-ui/react-label": "^1.0.0",
     "@radix-ui/react-dialog": "^1.0.0",
