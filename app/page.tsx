@@ -134,6 +134,7 @@ export default function VideoGenerator() {
       '-map', '1:a', 
       '-c:v', 'libx264', 
       '-c:a', 'aac', 
+      '-pix_fmt', 'yuv420p',
       '-shortest', 
       `output${index}.mp4`
     )
@@ -177,10 +178,11 @@ export default function VideoGenerator() {
         '-safe', '0',
         '-i', 'input.txt',
         '-c', 'copy',
-        'output.mp4'
+        '-movflags', '+faststart',
+        'final_output.mp4'
       )
 
-      const data = ffmpeg.FS('readFile', 'output.mp4')
+      const data = ffmpeg.FS('readFile', 'final_output.mp4')
       const videoUrl = URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }))
 
       if (videoRef.current) {
@@ -283,4 +285,4 @@ export default function VideoGenerator() {
       <video ref={videoRef} controls className="w-full rounded-lg shadow-lg" />
     </div>
   )
-    }
+      }
