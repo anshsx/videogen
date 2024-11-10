@@ -1,13 +1,11 @@
-// @type {import('next').NextConfig}
-import { NextConfig } from 'next';
-
+/** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   webpack: (config) => {
     config.resolve.fallback = { 
       fs: false, 
       path: false,
-      crypto: false,
+      crypto: false
     };
     return config;
   },
@@ -30,4 +28,4 @@ const nextConfig = {
   },
 }
 
-export default nextConfig;
+module.exports = nextConfig
